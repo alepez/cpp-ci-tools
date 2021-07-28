@@ -33,4 +33,4 @@ RUN \
 
 USER builder
 
-CMD ["bash"]
+ENTRYPOINT [ "/bin/bash", "-c" ]
