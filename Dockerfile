@@ -32,6 +32,12 @@ RUN \
   adduser builder sudo && \
   echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+# This is needed for GitLab CI
+# See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1170
+RUN \
+  echo "dash dash/sh boolean false" | debconf-set-selections && \
+  dpkg-reconfigure dash
+
 USER builder
 
 ENTRYPOINT [ "/bin/bash", "-c" ]
