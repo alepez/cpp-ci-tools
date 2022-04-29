@@ -16,6 +16,7 @@ RUN apt-get update -qqy && \
       gcc \
       git \
       lcov \
+      ruby \
       sudo \
       zip \
       && \
