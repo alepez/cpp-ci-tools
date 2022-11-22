@@ -38,7 +38,8 @@ RUN \
   mkdir -p default && \
   cd default && \
   cmake \
-    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lldb;lld" \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;" \
+    -DLLVM_ENABLE_RUNTIMES="all" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/opt/llvm/default \
     -DCMAKE_C_COMPILER=clang \
