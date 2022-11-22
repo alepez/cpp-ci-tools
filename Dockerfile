@@ -2,6 +2,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
+ENV LLVM_VERSION=14.0.6
 
 RUN apt-get update -qqy && \
     apt-get install -qqy \
@@ -18,20 +19,74 @@ RUN apt-get update -qqy && \
       lcov \
       ruby \
       sudo \
+      wget \
       zip \
+      zlib1g-dev \
       && \
     rm -rf /var/lib/apt/lists/*
 
-# https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads
 RUN \
-  cd /opt && \
-  curl https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2 | tar jxf -
+  mkdir -p /tmp/llvm-src && \
+  cd /tmp/llvm-src && \
+  wget https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-${LLVM_VERSION}.tar.gz && \
+  tar zxf llvmorg-${LLVM_VERSION}.tar.gz
+
+RUN mkdir /tmp/llvm-build
+WORKDIR /tmp/llvm-build/
+
+RUN \
+  mkdir -p default && \
+  cd default && \
+  cmake \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lldb;lld" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/opt/llvm/default \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+     /tmp/llvm-src/llvm-project-llvmorg-${LLVM_VERSION}/llvm && \
+  cmake --build . --target install -j16
+
+RUN \
+  mkdir -p msan && \
+  cd msan && \
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/opt/llvm/msan \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" \
+    -DLIBCXX_INSTALL_EXPERIMENTAL_LIBRARY=NO \
+    -DLLVM_USE_SANITIZER=MemoryWithOrigins \
+     /tmp/llvm-src/llvm-project-llvmorg-${LLVM_VERSION}/runtimes && \
+  cmake --build . --target install
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+ENV LLVM_VERSION=14.0.6
+
+RUN apt-get update -qqy && \
+    apt-get install -qqy \
+      bzip2 \
+      cmake \
+      cppcheck \
+      curl \
+      g++ \
+      gcc \
+      git \
+      ruby \
+      wget \
+      zip \
+      zlib1g-dev
+
+RUN apt-get install -qqy gcovr
+
+COPY --from=0 /opt/llvm /opt/llvm
 
 RUN \
   useradd -m builder && \
-  echo "builder:builder" | chpasswd && \
-  adduser builder sudo && \
-  echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+  echo "builder:builder" | chpasswd
 
 # This is needed for GitLab CI
 # See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1170
