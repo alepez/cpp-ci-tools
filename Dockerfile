@@ -97,4 +97,7 @@ RUN \
 
 USER builder
 
+ENV LLVM_MSAN=/opt/llvm/msan
+ENV PATH="${PATH}:/opt/llvm/default/bin"
+
 ENTRYPOINT [ "/bin/bash", "-c" ]
