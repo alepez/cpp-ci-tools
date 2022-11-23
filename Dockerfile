@@ -6,6 +6,7 @@ ENV LLVM_VERSION=14.0.6
 
 RUN apt-get update -qqy && \
     apt-get install -qqy \
+      build-essential \
       bzip2 \
       clang \
       clang-format \
@@ -15,8 +16,10 @@ RUN apt-get update -qqy && \
       curl \
       g++ \
       gcc \
+      gcc-multilib \
       git \
       lcov \
+      python3-distutils \
       ruby \
       sudo \
       wget \
@@ -38,25 +41,25 @@ RUN \
   mkdir -p default && \
   cd default && \
   cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_INSTALL_PREFIX=/opt/llvm/default \
     -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;" \
     -DLLVM_ENABLE_RUNTIMES="all" \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/opt/llvm/default \
-    -DCMAKE_C_COMPILER=clang \
-    -DCMAKE_CXX_COMPILER=clang++ \
      /tmp/llvm-src/llvm-project-llvmorg-${LLVM_VERSION}/llvm && \
-  cmake --build . --target install -j16
+  cmake --build . --target install
 
 RUN \
   mkdir -p msan && \
   cd msan && \
   cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/opt/llvm/msan \
-    -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER=clang++ \
-    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_INSTALL_PREFIX=/opt/llvm/msan \
     -DLIBCXX_INSTALL_EXPERIMENTAL_LIBRARY=NO \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" \
     -DLLVM_USE_SANITIZER=MemoryWithOrigins \
      /tmp/llvm-src/llvm-project-llvmorg-${LLVM_VERSION}/runtimes && \
   cmake --build . --target install
