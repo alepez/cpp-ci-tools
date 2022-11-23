@@ -75,13 +75,15 @@ RUN apt-get update -qqy && \
       cmake \
       cppcheck \
       curl \
+      gcovr \
       git \
+      libstdc++-11-dev \
       ruby \
       wget \
       zip \
-      zlib1g-dev
-
-RUN apt-get install -qqy gcovr
+      zlib1g-dev \
+      && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=0 /opt/llvm /opt/llvm
 COPY --from=0 /usr/local /usr/local
@@ -101,5 +103,4 @@ USER builder
 ENV LLVM_MSAN=/opt/llvm/msan
 
 # This is needed for GitLab CI
-# See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1170
 ENTRYPOINT [ "/bin/bash", "-c" ]
