@@ -11,6 +11,8 @@ RUN apt-get update -qqy && \
       clang \
       cmake \
       curl \
+      gcc \
+      gcc-multilib \
       git \
       python3-distutils \
       wget \
