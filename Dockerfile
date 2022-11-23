@@ -44,7 +44,6 @@ RUN \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_COMPILER=clang++ \
     -DCMAKE_C_COMPILER=clang \
-    -DCMAKE_INSTALL_PREFIX=/opt/llvm/default \
     -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;lldb;" \
     -DLLVM_ENABLE_RUNTIMES="all" \
      /tmp/llvm-src/llvm-project-llvmorg-${LLVM_VERSION}/llvm && \
@@ -76,8 +75,6 @@ RUN apt-get update -qqy && \
       cmake \
       cppcheck \
       curl \
-      g++ \
-      gcc \
       git \
       ruby \
       wget \
@@ -87,6 +84,7 @@ RUN apt-get update -qqy && \
 RUN apt-get install -qqy gcovr
 
 COPY --from=0 /opt/llvm /opt/llvm
+COPY --from=0 /usr/local /usr/local
 
 RUN \
   useradd -m builder && \
@@ -101,6 +99,7 @@ RUN \
 USER builder
 
 ENV LLVM_MSAN=/opt/llvm/msan
-ENV PATH="${PATH}:/opt/llvm/default/bin"
 
+# This is needed for GitLab CI
+# See https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1170
 ENTRYPOINT [ "/bin/bash", "-c" ]
