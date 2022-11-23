@@ -9,21 +9,11 @@ RUN apt-get update -qqy && \
       build-essential \
       bzip2 \
       clang \
-      clang-format \
-      clang-tidy \
       cmake \
-      cppcheck \
       curl \
-      g++ \
-      gcc \
-      gcc-multilib \
       git \
-      lcov \
       python3-distutils \
-      ruby \
-      sudo \
       wget \
-      zip \
       zlib1g-dev \
       && \
     rm -rf /var/lib/apt/lists/*
